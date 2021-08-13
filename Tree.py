@@ -4,7 +4,6 @@
 # In[ ]:
 
 
-import math
 import random
 
 
@@ -56,36 +55,40 @@ class Tree:
         self.t_right = t_right#subarvore direita
         self.value = value#valor que vai ser avaliado durante a execução da arvore
     
-    def print_tree_expr(tree, q_spc):
+    def print_tree_expr(self, tree):
         "Retorna uma string representando a arvore como uma expressão lógica"
         if(tree != None):
             if tree.op == "not":
                 #print(tree.op,end = " ")
                 str_ = tree.op + " "
-                str_ += tree.print_tree_expr(tree.t_left, q_spc+1)
+                str_ += self.print_tree_expr(tree.t_left)
                 return str_
             else:
                 str_ = ""
-                str_ += tree.print_tree_expr(tree.t_left, q_spc+1) 
+                str_ += self.print_tree_expr(tree.t_left) 
                 str_ += tree.op + " "
                 #print(tree.op, end = " ")
-                str_ += tree.print_tree_expr(tree.t_right, q_spc+1)
+                str_ += self.print_tree_expr(tree.t_right)
                 return str_
         else:
             return ""
     
-    def print_tree_not(self, q_spc):
+    def print_tree_not(self,tree, q_spc):
         """Printa a arvore como uma estrutura de diretório"""
-        if(self != None):
+        if(tree != None):
             for i in range(q_spc):
                 print("-", end = "")
-            print(self.op, end = "\n")
-            self.print_tree_not(self.t_left, q_spc+1)
-            self.print_tree_not(self.t_right, q_spc+1)
+            if tree.op == "not":
+                print(tree.op, end = "\n")
+                self.print_tree_not(tree.t_left, q_spc+1)
+            else:
+                print(self.op, end = "\n")
+                self.print_tree_not(tree.t_left, q_spc+1)
+                self.print_tree_not(tree.t_right, q_spc+1)
     
     
     def __str__(self):
-        return self.print_tree_expr(self, 0)
+        return self.print_tree_expr(self)
 
 
 # In[ ]:
@@ -215,6 +218,12 @@ ind = pop[98]
 
 
 print(ind)
+
+
+# In[ ]:
+
+
+ind.print_tree_not(ind, 0)
 
 
 # In[ ]:
