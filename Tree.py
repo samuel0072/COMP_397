@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import random
 
 
-# In[ ]:
+# In[2]:
 
 
 #operadores suportados e operandos
 ops = ["and", "or", "not", "p", "q", "r"]
 
 
-# In[ ]:
+# In[3]:
 
 
 #Escolhemos a tabela 6
@@ -45,7 +45,7 @@ tabela6 = [[True, True, True, False],
             [False, False, False, False]]
 
 
-# In[ ]:
+# In[19]:
 
 
 class Tree:
@@ -82,7 +82,7 @@ class Tree:
                 print(tree.op, end = "\n")
                 self.print_tree_not(tree.t_left, q_spc+1)
             else:
-                print(self.op, end = "\n")
+                print(tree.op, end = "\n")
                 self.print_tree_not(tree.t_left, q_spc+1)
                 self.print_tree_not(tree.t_right, q_spc+1)
     
@@ -91,7 +91,7 @@ class Tree:
         return self.print_tree_expr(self)
 
 
-# In[ ]:
+# In[5]:
 
 
 def exec_node(tree, lvalue, rvalue):
@@ -112,7 +112,7 @@ def exec_node(tree, lvalue, rvalue):
         raise Exception("tree.op inválido.")
 
 
-# In[ ]:
+# In[6]:
 
 
 def exec_tree(tree, p, q, r):
@@ -141,7 +141,7 @@ def exec_tree(tree, p, q, r):
         tree.value = exec_node(tree, tree.t_left.value, rvalue)#calcula o valor do nó
 
 
-# In[ ]:
+# In[7]:
 
 
 def gen_ind(tree):
@@ -177,7 +177,7 @@ def gen_ind(tree):
         return [l_tree, r_tree]
 
 
-# In[ ]:
+# In[8]:
 
 
 def init_pop(pop_size):
@@ -195,44 +195,44 @@ def init_pop(pop_size):
 
 # # Testes
 
-# In[ ]:
+# In[20]:
 
 
 pop = init_pop(100)
 
 
-# In[ ]:
+# In[21]:
 
 
 for i in pop:
     print(i, end = "\n")
 
 
-# In[ ]:
+# In[22]:
 
 
 ind = pop[98]
 
 
-# In[ ]:
+# In[23]:
 
 
 print(ind)
 
 
-# In[ ]:
+# In[24]:
 
 
 ind.print_tree_not(ind, 0)
 
 
-# In[ ]:
+# In[14]:
 
 
 exec_tree(ind, True, True, True)
 
 
-# In[ ]:
+# In[15]:
 
 
 ind.value
