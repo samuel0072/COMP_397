@@ -309,29 +309,6 @@ a.op = 'or'
 
 
 # In[ ]:
-#HENRIQUE
-def walkTree(root):
-    aux = 0
-    if not root:
-        return
-    elif random.randint(1, 100) <= 20:
-        return root.op
-    else:
-        aux = walkTree(root.t_left)
-        if aux != 0:
-            return aux
-        aux = walkTree(root.t_right)
-        if aux != 0:
-            return aux
-
-def selecao(populacao):
-    ordenaPop = sorted(populacao, key = lambda tree: fitness(tree))
-    return ordenaPop[0:TAMANHO_POP]
-def mutacao(tree):
-    if random.randint(1, 100) <= 5:
-        node = walkTree(tree)
-    else:
-        return tree
   
 
 
