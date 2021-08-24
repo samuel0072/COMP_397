@@ -1,21 +1,28 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[148]:
 
 
 import random
 import copy
 
 
-# In[ ]:
+# In[149]:
+
+
+cont = 0
+auxiliar = None
+
+
+# In[150]:
 
 
 #operadores suportados e operandos
 ops = ["and", "or", "not", "p", "q", "r"]
 
 
-# In[ ]:
+# In[151]:
 
 
 #Escolhemos a tabela 6
@@ -46,17 +53,18 @@ tabela6 = [[True, True, True, False],
             [False, False, False, False]]
 
 
-# In[ ]:
+# In[152]:
 
 
 class Tree:
     propositions = ["p", "q", "r"]
     operators = ["or", "not", "and"]
-    def __init__(self, op, t_left = None, t_right = None, value = None):
+    def __init__(self, op, t_left = None, t_right = None, value = None, fitness = 0):
         self.op = op#tipo do nó. Algum dentre ops
         self.t_left = t_left#subarvore esquerda
         self.t_right = t_right#subarvore direita
         self.value = value#valor que vai ser avaliado durante a execução da arvore
+        self.fitness = 0
     
     def print_tree_expr(self, tree):
         "Retorna uma string representando a arvore como uma expressão lógica"
@@ -76,18 +84,6 @@ class Tree:
         else:
             return ""
     
-    def print_tree_not(self,tree, q_spc):
-        """Printa a arvore como uma estrutura de diretório"""
-        if(tree != None):
-            for i in range(q_spc):
-                print("-", end = "")
-            if tree.op == "not":
-                print(tree.op, end = "\n")
-                self.print_tree_not(tree.t_left, q_spc+1)
-            else:
-                print(tree.op, end = "\n")
-                self.print_tree_not(tree.t_left, q_spc+1)
-                self.print_tree_not(tree.t_right, q_spc+1)
     
     def __deepcopy__(self, memo):#dicionário não é usado
         if self.op in self.propositions:#folha
@@ -107,7 +103,24 @@ class Tree:
         return self.print_tree_expr(self)
 
 
-# In[ ]:
+# In[153]:
+
+
+def print_tree_not(tree, q_spc):
+    """Printa a arvore como uma estrutura de diretório"""
+    if(tree != None):
+        for i in range(q_spc):
+            print("-", end = "")
+        if tree.op == "not":
+            print(tree.op, end = "\n")
+            print_tree_not(tree.t_left, q_spc+1)
+        else:
+            print(tree.op, end = "\n")
+            print_tree_not(tree.t_left, q_spc+1)
+            print_tree_not(tree.t_right, q_spc+1)
+
+
+# In[154]:
 
 
 def exec_node(tree, lvalue, rvalue):
@@ -128,7 +141,7 @@ def exec_node(tree, lvalue, rvalue):
         raise Exception("tree.op inválido.")
 
 
-# In[ ]:
+# In[155]:
 
 
 def exec_tree(tree, p, q, r):
@@ -154,17 +167,18 @@ def exec_tree(tree, p, q, r):
         #quando tree.op == 'not' tree não possui subarvore a direita
         lvalue = tree.t_left.value if tree.t_left is not None else None#caso a subarvore a esquerda não existe o resultado é None
         rvalue = tree.t_right.value if tree.t_right is not None else None#caso a subarvore a direita não existe o resultado é None
-        tree.value = exec_node(tree, lvalue, rvalue)#calcula o valor do nó
+        tree.value = exec_node(tree, tree.t_left.value, rvalue)#calcula o valor do nó
 
 
-# In[ ]:
+# In[156]:
 
 
 def gen_ind(tree):
     """Retorna a(s) subarvore(s) de tree"""
     global ops
+    global prop
     if tree.op == "not":
-        op, = random.sample(ops, k = 1)#random.sample retorna uma lista. Usando a , apenas o elemento é atribuido para op
+        op, = random.sample(ops, k = 1)#random.sample retorna uma lista. Usando a, apenas o elemento é atribuido para op
         d_tree = Tree(op)
         d1, d2 = gen_ind(d_tree)#gera as subarvores
         d_tree.t_left = d1
@@ -192,38 +206,7 @@ def gen_ind(tree):
         return [l_tree, r_tree]
 
 
-# In[ ]:
-
-
-def gen_subtree(tree):
-    """Retorna a(s) subarvore(s) de tree"""
-    ops = ["and", "or", "not", "prop"]
-    prop = ["p", "q", "r"]
-    if tree.op == "not":
-        op, = random.sample(ops, k = 1)#random.sample retorna uma lista. Usando a , apenas o elemento é atribuido para op
-        if op == 'prop':
-            op, = random.sample(prop, k = 1)
-        d_tree = Tree(op)
-        return [d_tree, None]#como tree é um not então só possui uma subarvore
-    
-    elif tree.op in prop:#verifica se a raíz dessa subarvore é uma proposição
-        return [None, None]# como tree é uma proposição, então não possui subarvore
-    
-    else:
-        #caso seja um 'or' ou 'and'
-
-        op1, op2 = random.sample(ops, k = 2)
-        if op1 == 'prop':
-            op1, = random.sample(prop, k = 1)
-        if op2 == 'prop':
-            op2, = random.sample(prop, k = 1)
-        l_tree = Tree(op1)#subarvore esquerda
-        r_tree = Tree(op2)#subarvore direita
-         
-        return [l_tree, r_tree]
-
-
-# In[ ]:
+# In[157]:
 
 
 def init_pop(pop_size):
@@ -235,81 +218,301 @@ def init_pop(pop_size):
         left, right = gen_ind(root)
         root.t_left = left
         root.t_right = right
+        root.fitness = fitness(root)
         pop.append(root)
     return pop
 
 
+# In[158]:
+
+
+def contar_profundidade(tree):
+        if(tree != None):
+            return max(1 + contar_profundidade(tree.t_left), 1 + contar_profundidade(tree.t_right))
+        return 0
+
+
+# In[159]:
+
+
+def contar_folhas(tree):
+    if(tree != None):
+    #print("Oi, eu sou o tee.op", tree.op)
+        if tree.op in ["p", "q", "r"]:
+            global cont
+            cont += 1
+        else:
+            contar_folhas(tree.t_left)
+            contar_folhas(tree.t_right)
+
+
+# In[160]:
+
+
+def fitness(individuo):
+    "retorna o fitness do indivíduo"
+    fit = 0
+
+    i = 0
+    while(i < 8):
+        lista_aux = tabela6[i]
+      #p, q, r, valor_esperado
+        p = lista_aux[0]
+        q = lista_aux[1]
+        r = lista_aux[2]
+        resultado_esperado = lista_aux[3]
+
+        exec_tree(individuo, p, q, r)
+        resultado = individuo.value
+      #print("Eu sou o resultado", resultado)
+      #print("Eu sou o esperado", resultado_esperado)
+        if(resultado == resultado_esperado):
+            fit = fit + 1
+
+        i = i + 1
+
+    profundidade = contar_profundidade(individuo)
+
+    global cont
+    cont = 0
+    contar_folhas(individuo)
+
+    if(profundidade == 0):
+        termo2 = 0
+    else:
+        termo2 = 1/profundidade
+
+    if(cont == 0):
+        termo3 = 0
+    else:
+        termo3 = 1/cont
+      
+    return fit + termo2 + termo3
+
+
+# In[198]:
+
+
+def selecionar_sub(tree, rt_chance = 1):
+    """
+    Retorna um nó aleatório da árvore e o caminho percorrido da raíz até aquele nó.
+    Sempre que a função alcança uma folha, a folha é retornada como nó escolhido.
+    O caminho é retornado de trás pra frente.
+    tree é o nó atual
+    rt_chance é a chance desse nó ser escolhido.
+    """
+    if tree.op in tree.propositions:#verifica se o nó atual é uma folha
+        return [tree, []]
+    
+    
+    x = random.randint(0, rt_chance)#Quanto maior rt_chance, maior  a chance de tree ser retornado
+
+    if x == 0:#escolheu ir pra esquerda
+        tree, caminho = selecionar_sub(tree.t_left, rt_chance = rt_chance + 1)
+        caminho.extend(["esquerda"])
+        return [tree, caminho]
+    elif x == 1:#escolheu ir pra direita
+        if(tree.op == "not"):#se tree for um not ele não possuí filho à direita
+            tree, caminho = selecionar_sub(tree.t_left, rt_chance = rt_chance + 1)
+            caminho.extend(["esquerda"])
+        else:
+            tree, caminho = selecionar_sub(tree.t_right, rt_chance = rt_chance + 1)
+            caminho.extend(["direita"])
+        return [tree, caminho]
+    else:#escolheu retornar o nó atual
+        global auxiliar
+        auxiliar = tree
+        return [auxiliar, []]
+
+
+# In[214]:
+
+
+def cruzamento(pai, mae):
+    
+    e_pai, c_pai = selecionar_sub(pai)#escolhe a parte do pai
+    e_mae, c_mae = selecionar_sub(mae)#""     "" ""       mãe  
+    
+    e_pai = copy.deepcopy(e_pai)#copia para não correr o risco de alterar o pai quando for mexer no filho
+    e_mae = copy.deepcopy(e_mae)#copia para não correr o risco de alterar a mãe quando for mexer no filho
+    
+    filho1 = copy.deepcopy(pai)#primeiro filho é uma cópia do pai
+    filho2 = copy.deepcopy(mae)#primeiro filho é uma cópia do pai
+    
+    #o caminho retornado por selecionar_sub está invertido
+    c_mae = c_mae[::-1]#inverte o caminho
+    c_pai = c_pai[::-1]#inverte o caminho
+    
+    substituir_arvore(filho1, c_pai, e_mae)#insere no primeiro filho a parte da mãe
+    substituir_arvore(filho2, c_mae, e_pai)#insere no segundo filho a parte do pai
+    
+    filho1.fitness = fitness(filho1)
+    filho2.fitness = fitness(filho2)
+
+    return [filho1, filho2]
+
+
+# In[184]:
+
+
+def substituir_arvore(tree, caminho, parte):
+    """Insere parte em tree na posição especificada em caminho."""
+    l = len(caminho)
+    if l > 0:
+        pai = tree
+        atual = tree
+
+        #refaz o caminho que levou à parte
+        for i in range(l):
+            if caminho[i] == "esquerda":
+                aux = atual
+                atual = atual.t_left
+                pai = aux
+            else:
+                aux = atual
+                atual = atual.t_right
+                pai = aux
+
+        #verifica se a última direção tomada foi para esquerda ou direita
+        if caminho[-1] == "esquerda":
+            pai.t_left = parte# substitui o pai do nó a ser substituido com a parte
+
+        elif caminho[-1] == "direita":
+            pai.t_right = parte# substitui o pai do nó a ser substituido com a parte
+    
+
+
+# In[185]:
+
+
+def walkTree(root):
+    aux = 0
+    if not root:
+        return
+    elif random.randint(1, 100) <= 20:
+        return root.op
+    else:
+        aux = walkTree(root.t_left)
+        if aux != 0:
+            return aux
+        aux = walkTree(root.t_right)
+        if aux != 0:
+            return aux
+
+
+# In[165]:
+
+
+def mutacao(tree):
+    if random.randint(1, 100) <= 5:
+        node = walkTree(tree)
+    else:
+        return tree
+
+
+# In[166]:
+
+
+def selecao(populacao):
+    ordenaPop = sorted(populacao, key = lambda tree: tree.fitness, reverse = True)
+    return ordenaPop[0:TAMANHO_POP]
+
+
 # # Testes
 
-# ### Inicializar a população
-
-# In[ ]:
+# In[167]:
 
 
 pop = init_pop(100)
 
 
-# In[ ]:
+# In[168]:
 
 
 for idx, ind in enumerate(pop):
-    print(idx,ind, end = "\n")
+    print(idx, ind,"fitness:", ind.fitness, end = "\n")
+
+
+# In[174]:
+
+
+pai = pop[2]
+mae = pop[0]
+
+
+# In[175]:
+
+
+ap = selecionar_sub(pai)
+
+
+# In[176]:
+
+
+am = selecionar_sub(mae)
+
+
+# In[177]:
+
+
+print(pai, "\n", ap[0], "\n", ap[1][::-1])
+
+
+# In[178]:
+
+
+print(mae, "\n", am[0], "\n", am[1][::-1])
+
+
+# In[134]:
+
+
+substituir_arvore(pai, ap[1][::-1], am[0])
+
+
+# In[213]:
+
+
+print(pai)
+
+
+# In[136]:
+
+
+substituir_arvore(mae, am[1][::-1], ap[0])
+
+
+# In[201]:
+
+
+print(mae)
+
+
+# In[215]:
+
+
+filhos = cruzamento(pai, mae)
+
+
+# In[216]:
+
+
+print(filhos[0])
+
+
+# In[217]:
+
+
+print(filhos[1])
+
+
+# In[219]:
+
+
+print_tree_not(filhos[0], 0)
 
 
 # In[ ]:
-
-
-ind = pop[55]
-
-
-# In[ ]:
-
-
-print(ind)
-
-
-# In[ ]:
-
-
-ind.print_tree_not(ind, 0)
-
-
-# ### avaliação da árvore
-
-# In[ ]:
-
-
-exec_tree(ind, False, False, True)
-
-
-# In[ ]:
-
-
-ind.value
-
-
-# ### cópia da arvore
-
-# In[ ]:
-
-
-a = copy.deepcopy(ind)
-
-
-# In[ ]:
-
-
-print(a, a.value)
-
-
-# In[ ]:
-
-
-a.op = 'or'
-
-
-# In[ ]:
-  
 
 
 
