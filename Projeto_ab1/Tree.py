@@ -1,28 +1,36 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[148]:
+# In[1]:
 
 
 import random
 import copy
+import math
 
 
-# In[149]:
+# In[2]:
 
 
 cont = 0
 auxiliar = None
 
 
-# In[150]:
+# In[3]:
 
 
 #operadores suportados e operandos
-ops = ["and", "or", "not", "p", "q", "r"]
+ops = ["and","or", "not", "p", "q", "r"]
 
 
-# In[151]:
+# In[4]:
+
+
+TAMANHO_POP = 100
+TAXA_CRUZAMENTO = 0.6
+
+
+# In[5]:
 
 
 #Escolhemos a tabela 6
@@ -53,7 +61,19 @@ tabela6 = [[True, True, True, False],
             [False, False, False, False]]
 
 
-# In[152]:
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+no := no op no
+
+
+# In[6]:
 
 
 class Tree:
@@ -103,7 +123,7 @@ class Tree:
         return self.print_tree_expr(self)
 
 
-# In[153]:
+# In[7]:
 
 
 def print_tree_not(tree, q_spc):
@@ -120,7 +140,7 @@ def print_tree_not(tree, q_spc):
             print_tree_not(tree.t_right, q_spc+1)
 
 
-# In[154]:
+# In[8]:
 
 
 def exec_node(tree, lvalue, rvalue):
@@ -141,7 +161,7 @@ def exec_node(tree, lvalue, rvalue):
         raise Exception("tree.op inválido.")
 
 
-# In[155]:
+# In[9]:
 
 
 def exec_tree(tree, p, q, r):
@@ -152,31 +172,31 @@ def exec_tree(tree, p, q, r):
     A arvore é uma expressão lógica, então ela pode ser avaliada.
     A avaliação é feita primeiro nas subarvore depois na raiz da subarvore
     """
-    if tree == None:
-        return None
-    elif tree.op == "p":
+    if tree.op == "p":
         tree.value = p#atribui o valor da proposição a arvore
     elif tree.op == "q":
         tree.value = q
     elif tree.op == "r":
         tree.value = r
     else:#se tree não for uma proposição é um or, not ou and
-        exec_tree(tree.t_left, p, q, r)#calcula o resultado a esquerda
-        exec_tree(tree.t_right, p, q, r)#calcula o resultado a direta
-        
-        #quando tree.op == 'not' tree não possui subarvore a direita
-        lvalue = tree.t_left.value if tree.t_left is not None else None#caso a subarvore a esquerda não existe o resultado é None
-        rvalue = tree.t_right.value if tree.t_right is not None else None#caso a subarvore a direita não existe o resultado é None
-        tree.value = exec_node(tree, tree.t_left.value, rvalue)#calcula o valor do nó
+        if tree.op == "not":#quando tree.op == 'not' tree não possui subarvore a direita
+            exec_tree(tree.t_left, p, q, r)
+            lvalue = tree.t_left.value
+            tree.value = exec_node(tree, lvalue, None)
+        else:
+            exec_tree(tree.t_left, p, q, r)#calcula o resultado a esquerda
+            exec_tree(tree.t_right, p, q, r)#calcula o resultado a direta
+            lvalue = tree.t_left.value
+            rvalue = tree.t_right.value
+            tree.value = exec_node(tree, lvalue, rvalue)#calcula o valor do nó
 
 
-# In[156]:
+# In[10]:
 
 
 def gen_ind(tree):
     """Retorna a(s) subarvore(s) de tree"""
     global ops
-    global prop
     if tree.op == "not":
         op, = random.sample(ops, k = 1)#random.sample retorna uma lista. Usando a, apenas o elemento é atribuido para op
         d_tree = Tree(op)
@@ -191,7 +211,9 @@ def gen_ind(tree):
     else:
         #caso seja um 'or' ou 'and'
 
-        op1, op2 = random.sample(ops, k = 2)  
+        op1, op2 = random.sample(ops, k = 2) 
+        #op1, = random.sample(ops, k = 2)
+        #op2, = random.sample(ops, k = 1)
         l_tree = Tree(op1)#subarvore esquerda
         l1, l2 = gen_ind(l_tree)#gera as subarvores
         l_tree.t_left = l1
@@ -206,7 +228,7 @@ def gen_ind(tree):
         return [l_tree, r_tree]
 
 
-# In[157]:
+# In[11]:
 
 
 def init_pop(pop_size):
@@ -223,7 +245,7 @@ def init_pop(pop_size):
     return pop
 
 
-# In[158]:
+# In[12]:
 
 
 def contar_profundidade(tree):
@@ -232,7 +254,7 @@ def contar_profundidade(tree):
         return 0
 
 
-# In[159]:
+# In[13]:
 
 
 def contar_folhas(tree):
@@ -246,7 +268,7 @@ def contar_folhas(tree):
             contar_folhas(tree.t_right)
 
 
-# In[160]:
+# In[14]:
 
 
 def fitness(individuo):
@@ -290,7 +312,7 @@ def fitness(individuo):
     return fit + termo2 + termo3
 
 
-# In[198]:
+# In[15]:
 
 
 def selecionar_sub(tree, rt_chance = 1):
@@ -303,7 +325,6 @@ def selecionar_sub(tree, rt_chance = 1):
     """
     if tree.op in tree.propositions:#verifica se o nó atual é uma folha
         return [tree, []]
-    
     
     x = random.randint(0, rt_chance)#Quanto maior rt_chance, maior  a chance de tree ser retornado
 
@@ -325,7 +346,7 @@ def selecionar_sub(tree, rt_chance = 1):
         return [auxiliar, []]
 
 
-# In[214]:
+# In[16]:
 
 
 def cruzamento(pai, mae):
@@ -346,13 +367,11 @@ def cruzamento(pai, mae):
     substituir_arvore(filho1, c_pai, e_mae)#insere no primeiro filho a parte da mãe
     substituir_arvore(filho2, c_mae, e_pai)#insere no segundo filho a parte do pai
     
-    filho1.fitness = fitness(filho1)
-    filho2.fitness = fitness(filho2)
 
     return [filho1, filho2]
 
 
-# In[184]:
+# In[17]:
 
 
 def substituir_arvore(tree, caminho, parte):
@@ -382,134 +401,210 @@ def substituir_arvore(tree, caminho, parte):
     
 
 
-# In[185]:
+# In[18]:
 
 
-def walkTree(root):
-    aux = 0
-    if not root:
+#Escolhe um nó aleatório
+def walkTree(root, mult, max):
+    aux = None
+    if root == None:
         return
-    elif random.randint(1, 100) <= 20:
-        return root.op
+    elif random.randint(1, max) <= mult:
+        return root
     else:
-        aux = walkTree(root.t_left)
-        if aux != 0:
-            return aux
-        aux = walkTree(root.t_right)
-        if aux != 0:
-            return aux
+        if random.randint(1,2) == 1:
+            aux = walkTree(root.t_left, mult + 1, max)
+            if aux != None:
+                return aux
+            aux = walkTree(root.t_right, mult + 1, max)
+            if aux != None:
+                return aux
+        else:
+            aux = walkTree(root.t_right, mult + 1, max)
+            if aux != None:
+                return aux
+            aux = walkTree(root.t_left, mult + 1, max)
+            if aux != None:
+                return aux
 
 
-# In[165]:
+# In[28]:
 
 
+#Mutação: altera o operador de um nó aleatório
 def mutacao(tree):
     if random.randint(1, 100) <= 5:
-        node = walkTree(tree)
+        #node = Tree()
+        node = walkTree(tree, 1, contar_profundidade(tree))
+        #print(tree)
+        if node.op == "p" or node.op == "q" or node.op == "r":
+            if node.op == "p":
+                aux = random.randint(1,3)
+                if aux == 1:
+                    node.op = "q"
+                elif aux == 2:
+                    node.op = "r"
+                else:
+                    node.op = "not"
+                    node.t_left = Tree("p")
+                return tree
+            elif node.op == "q":
+                aux = random.randint(1,3)
+                if aux == 1:
+                    node.op = "p"
+                elif aux == 2:
+                    node.op = "r"
+                else:
+                    node.op = "not"
+                    node.t_left = Tree("q")
+                return tree
+            else:
+                aux = random.randint(1,3)
+                if aux == 1:
+                    node.op = "q"
+                elif aux == 2:
+                    node.op = "p"
+                else:
+                    node.op = "not"
+                    node.t_left = Tree("r")
+                return tree
+        elif node.op == "and" or node.op =="or" or node.op =="not":
+            if node.op == "and":
+                node.op = "or"
+            elif node.op == "or":
+                node.op = "and"
+            return tree
     else:
         return tree
 
 
-# In[166]:
+# In[20]:
 
 
-def selecao(populacao):
+def selecao(populacao, tamanho_max):
+    
+    t = len(populacao)
+    
+    if(tamanho_max > t ):
+        raise Exception("O tamanho máximo informado é inválido.")
+    elif(tamanho_max < 0):
+        raise Exception("O tamanho máximo informado é inválido.")
+    
+    #ordena para executar a seleção elitista    
     ordenaPop = sorted(populacao, key = lambda tree: tree.fitness, reverse = True)
-    return ordenaPop[0:TAMANHO_POP]
+    ordenaPop = ordenaPop[0:tamanho_max]
+    
+    return ordenaPop
+
+
+# In[21]:
+
+
+def selecao_pais(populacao, taxa):
+    """Retorna uma população com número par de pais"""
+    #ordena para executar a seleção elitista
+    populacao = sorted(populacao, key = lambda tree: tree.fitness, reverse= True)
+    t = len(populacao)
+    q_ind = math.ceil(t *taxa)
+    
+    if(q_ind > t ):
+        raise Exception("Quantidade de individuos na população é muito pequena.")
+    if (q_ind % 2) != 0:#arredonda para o maior inteiro par mais proximo
+        q_ind+=1
+        
+    pais = populacao[0:q_ind]
+    return pais
+
+
+# In[38]:
+
+
+def cruzamento_pop(candidatos_pais):
+    "Retorna os filhos criados pelos candidatos a pais"
+    filhos_ = []
+    
+    
+    random.shuffle(candidatos_pais)#embaralha a lista de candidatos a pais
+    
+    for i in range(0, len(candidatos_pais), 2):#cruza os pais 2 a 2
+        filhos = cruzamento(candidatos_pais[i], candidatos_pais[i+1])
+        filhos[0] = mutacao(filhos[0])#muta o filho
+        filhos[1] = mutacao(filhos[1])#muta o filho
+        filhos[0].fitness = fitness( filhos[0])
+        filhos[1].fitness = fitness( filhos[1])
+        filhos_.extend(filhos)
+        
+    return filhos_
 
 
 # # Testes
 
-# In[167]:
+# In[55]:
 
 
 pop = init_pop(100)
 
 
-# In[168]:
+# In[56]:
 
 
 for idx, ind in enumerate(pop):
-    print(idx, ind,"fitness:", ind.fitness, end = "\n")
+    print(idx, ind, ind.fitness, end= "\n")
 
 
-# In[174]:
+# In[57]:
 
 
-pai = pop[2]
-mae = pop[0]
+geracao = 1
 
 
-# In[175]:
+# In[58]:
 
 
-ap = selecionar_sub(pai)
+while geracao < 100:
+    print(geracao, end= "\n")
+    pais = selecao_pais(pop, TAXA_CRUZAMENTO)
+    print("selecionou pais")
+    filhos = cruzamento_pop(pais)
+    print("Cruzamento")
+    pop.extend(filhos)
+    pop = selecao(pop, TAMANHO_POP)
+    #pop.fitness_geracao.append(pop.individuos[0].fitness)
+    print("Seleção")
+    geracao += 1
 
 
-# In[176]:
+# In[59]:
 
 
-am = selecionar_sub(mae)
+for idx, ind in enumerate(pop):
+    print(idx, ind, ind.fitness, end= "\n")
 
 
-# In[177]:
+# In[53]:
 
 
-print(pai, "\n", ap[0], "\n", ap[1][::-1])
+# VERDADEIRO VERDADEIRO VERDADEIRO FALSO
+#
+# VERDADEIRO VERDADEIRO FALSO      FALSO
+#
+# VERDADEIRO FALSO      VERDADEIRO VERDADEIRO
+#
+# VERDADEIRO FALSO      FALSO      FALSO
+#
+# FALSO      VERDADEIRO VERDADEIRO FALSO
+#
+# FALSO      VERDADEIRO FALSO      FALSO
+#
+# FALSO      FALSO      VERDADEIRO FALSO
+#
+# FALSO      FALSO      FALSO      FALSO
 
 
-# In[178]:
+# In[54]:
 
 
-print(mae, "\n", am[0], "\n", am[1][::-1])
-
-
-# In[134]:
-
-
-substituir_arvore(pai, ap[1][::-1], am[0])
-
-
-# In[213]:
-
-
-print(pai)
-
-
-# In[136]:
-
-
-substituir_arvore(mae, am[1][::-1], ap[0])
-
-
-# In[201]:
-
-
-print(mae)
-
-
-# In[215]:
-
-
-filhos = cruzamento(pai, mae)
-
-
-# In[216]:
-
-
-print(filhos[0])
-
-
-# In[217]:
-
-
-print(filhos[1])
-
-
-# In[219]:
-
-
-print_tree_not(filhos[0], 0)
+#99 p and r and not q  8.583333333333334
 
 
 # In[ ]:
