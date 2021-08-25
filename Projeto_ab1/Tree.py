@@ -4,6 +4,15 @@
 # In[ ]:
 
 
+#Grupo: Henrique, David e Samuel
+#Linguagem: Python
+#versão do python 3.8.8
+#link para download: https://www.python.org/downloads/
+
+
+# In[ ]:
+
+
 import random
 import copy
 import math
