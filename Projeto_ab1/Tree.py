@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import random
@@ -9,28 +9,28 @@ import copy
 import math
 
 
-# In[2]:
+# In[ ]:
 
 
 cont = 0
 auxiliar = None
 
 
-# In[3]:
+# In[ ]:
 
 
 #operadores suportados e operandos
 ops = ["and","or", "not", "p", "q", "r"]
 
 
-# In[4]:
+# In[ ]:
 
 
 TAMANHO_POP = 100
 TAXA_CRUZAMENTO = 0.6
 
 
-# In[5]:
+# In[ ]:
 
 
 #Escolhemos a tabela 6
@@ -64,18 +64,6 @@ tabela6 = [[True, True, True, False],
 # In[ ]:
 
 
-
-
-
-# In[ ]:
-
-
-no := no op no
-
-
-# In[6]:
-
-
 class Tree:
     propositions = ["p", "q", "r"]
     operators = ["or", "not", "and"]
@@ -88,21 +76,21 @@ class Tree:
     
     def print_tree_expr(self, tree):
         "Retorna uma string representando a arvore como uma expressão lógica"
-        if(tree != None):
-            if tree.op == "not":
-                #print(tree.op,end = " ")
-                str_ = tree.op + " "
-                str_ += self.print_tree_expr(tree.t_left)
-                return str_
-            else:
-                str_ = ""
-                str_ += self.print_tree_expr(tree.t_left) 
-                str_ += tree.op + " "
-                #print(tree.op, end = " ")
-                str_ += self.print_tree_expr(tree.t_right)
-                return str_
+        if tree.op in tree.propositions:
+            return tree.op + " "
+        if tree.op == "not":
+            #print(tree.op,end = " ")
+            str_ = tree.op + " ("
+            str_ += (self.print_tree_expr(tree.t_left) + ")")
+            return str_
         else:
-            return ""
+            str_ = " ("
+            str_ += self.print_tree_expr(tree.t_left) 
+            str_ += " "+ tree.op + " "
+            #print(tree.op, end = " ")
+            str_ += (self.print_tree_expr(tree.t_right) + ")")
+            return str_ 
+       
     
     
     def __deepcopy__(self, memo):#dicionário não é usado
@@ -123,7 +111,7 @@ class Tree:
         return self.print_tree_expr(self)
 
 
-# In[7]:
+# In[ ]:
 
 
 def print_tree_not(tree, q_spc):
@@ -140,7 +128,7 @@ def print_tree_not(tree, q_spc):
             print_tree_not(tree.t_right, q_spc+1)
 
 
-# In[8]:
+# In[ ]:
 
 
 def exec_node(tree, lvalue, rvalue):
@@ -161,7 +149,7 @@ def exec_node(tree, lvalue, rvalue):
         raise Exception("tree.op inválido.")
 
 
-# In[9]:
+# In[ ]:
 
 
 def exec_tree(tree, p, q, r):
@@ -191,7 +179,7 @@ def exec_tree(tree, p, q, r):
             tree.value = exec_node(tree, lvalue, rvalue)#calcula o valor do nó
 
 
-# In[10]:
+# In[ ]:
 
 
 def gen_ind(tree):
@@ -228,24 +216,29 @@ def gen_ind(tree):
         return [l_tree, r_tree]
 
 
-# In[11]:
+# In[ ]:
 
 
 def init_pop(pop_size):
     pop = []
     global ops
-    for i in range(pop_size):
+    while len(pop) != pop_size:
         op, = random.sample(ops, k = 1)
         root = Tree(op)
         left, right = gen_ind(root)
         root.t_left = left
         root.t_right = right
-        root.fitness = fitness(root)
-        pop.append(root)
+        
+
+        if ok(root, ["p", "q", "r"]):#se a função retornar false o if é executado
+            
+            root.fitness = fitness(root)
+            pop.append(root)
+            
     return pop
 
 
-# In[12]:
+# In[ ]:
 
 
 def contar_profundidade(tree):
@@ -254,7 +247,7 @@ def contar_profundidade(tree):
         return 0
 
 
-# In[13]:
+# In[ ]:
 
 
 def contar_folhas(tree):
@@ -268,7 +261,7 @@ def contar_folhas(tree):
             contar_folhas(tree.t_right)
 
 
-# In[14]:
+# In[ ]:
 
 
 def fitness(individuo):
@@ -312,7 +305,7 @@ def fitness(individuo):
     return fit + termo2 + termo3
 
 
-# In[15]:
+# In[ ]:
 
 
 def selecionar_sub(tree, rt_chance = 1):
@@ -346,7 +339,7 @@ def selecionar_sub(tree, rt_chance = 1):
         return [auxiliar, []]
 
 
-# In[16]:
+# In[ ]:
 
 
 def cruzamento(pai, mae):
@@ -371,7 +364,7 @@ def cruzamento(pai, mae):
     return [filho1, filho2]
 
 
-# In[17]:
+# In[ ]:
 
 
 def substituir_arvore(tree, caminho, parte):
@@ -401,7 +394,7 @@ def substituir_arvore(tree, caminho, parte):
     
 
 
-# In[18]:
+# In[ ]:
 
 
 #Escolhe um nó aleatório
@@ -428,7 +421,7 @@ def walkTree(root, mult, max):
                 return aux
 
 
-# In[28]:
+# In[ ]:
 
 
 #Mutação: altera o operador de um nó aleatório
@@ -478,7 +471,7 @@ def mutacao(tree):
         return tree
 
 
-# In[20]:
+# In[ ]:
 
 
 def selecao(populacao, tamanho_max):
@@ -497,7 +490,7 @@ def selecao(populacao, tamanho_max):
     return ordenaPop
 
 
-# In[21]:
+# In[ ]:
 
 
 def selecao_pais(populacao, taxa):
@@ -516,7 +509,7 @@ def selecao_pais(populacao, taxa):
     return pais
 
 
-# In[38]:
+# In[ ]:
 
 
 def cruzamento_pop(candidatos_pais):
@@ -537,51 +530,72 @@ def cruzamento_pop(candidatos_pais):
     return filhos_
 
 
+# In[ ]:
+
+
+def ok(tree, rem):
+    """Essa função checa se o individuo é um monstro.
+    rem é uma lista de proposições que ainda não foram identificadas em tree
+    Retorna True se o índividuo não possuir todas as proposições informadas em rem
+    Retorna False se o individuo possuir todas as proposições informadas em rem
+    Retorna True se o índividuo NÃO É um monstro
+    Retorna False se o índividuo É um monstro"""
+    if tree == None:#uma árvore vazia é uma arvore invalida
+        return False
+    if len(rem) == 0:#quando todas as proposições forem identificadas o algoritmo retorna true
+        return True
+    if tree.op in tree.propositions:
+        if tree.op in rem:#verifica se a proposição não foi identificada
+            rem.remove(tree.op)#retira a proposição da lista
+    return ok(tree.t_left, rem) or ok(tree.t_right, rem)#verifica o lado esquerda e direito
+
+
 # # Testes
 
-# In[55]:
+# In[ ]:
 
 
 pop = init_pop(100)
 
 
-# In[56]:
+# In[ ]:
 
 
+print("--------------------- Primeira Geração de Individuos ---------------------")
 for idx, ind in enumerate(pop):
-    print(idx, ind, ind.fitness, end= "\n")
+    print("Individuo {}: {}\t fitness: {}".format(idx, ind, ind.fitness))
 
 
-# In[57]:
+# In[ ]:
 
 
+print("---------------------  Execução do algoritmo ---------------------")
 geracao = 1
-
-
-# In[58]:
-
-
-while geracao < 100:
-    print(geracao, end= "\n")
+while geracao < 300:
+    print("Geração:", geracao, end= "\n")
+    print("Passos:")
     pais = selecao_pais(pop, TAXA_CRUZAMENTO)
-    print("selecionou pais")
+    print("\t Selecionou pais para o cruzamento")
     filhos = cruzamento_pop(pais)
-    print("Cruzamento")
+    print("\t Executou o cruzamento")
     pop.extend(filhos)
     pop = selecao(pop, TAMANHO_POP)
     #pop.fitness_geracao.append(pop.individuos[0].fitness)
-    print("Seleção")
+    print("\t Executou a seleção \n")
+    print("\t Melhor individuo da geração:")
+    print("\t\t {}".format(pop[0]))
     geracao += 1
 
 
-# In[59]:
+# In[ ]:
 
 
+print("--------------------- Individuos da última geração do algoritmo ---------------------")
 for idx, ind in enumerate(pop):
-    print(idx, ind, ind.fitness, end= "\n")
+    print("Individuo {}: {}\t fitness: {}".format(idx, ind, ind.fitness))
 
 
-# In[53]:
+# In[ ]:
 
 
 # VERDADEIRO VERDADEIRO VERDADEIRO FALSO
@@ -599,16 +613,4 @@ for idx, ind in enumerate(pop):
 # FALSO      FALSO      VERDADEIRO FALSO
 #
 # FALSO      FALSO      FALSO      FALSO
-
-
-# In[54]:
-
-
-#99 p and r and not q  8.583333333333334
-
-
-# In[ ]:
-
-
-
 
